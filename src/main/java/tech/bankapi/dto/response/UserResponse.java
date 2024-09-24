@@ -14,6 +14,7 @@ public class UserResponse {
     private String name;
     private String email;
     private String phone;
+    private String token;
 
     private List<AccountResponse> accounts;
     private List<SecurityLogResponse> securityLogs;
