@@ -67,6 +67,12 @@ public class GlobalExceptionHandler {
         }
     }
 
+    public static class InvalidCredentialsException extends RuntimeException {
+        public InvalidCredentialsException(String message) {
+            super(message);
+        }
+    }
+
     // Exception Handlers
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGeneralException(Exception ex) {
@@ -111,6 +117,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<Object> handleEntityNotFoundException(EntityNotFoundException ex) {
         return buildResponseEntity(ex, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<Object> handleInvalidCredentialsException(InvalidCredentialsException ex) {
+        return buildResponseEntity(ex, HttpStatus.UNAUTHORIZED);
     }
 
     // Utility method to build a response
