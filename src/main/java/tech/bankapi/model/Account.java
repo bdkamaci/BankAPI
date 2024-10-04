@@ -1,4 +1,4 @@
-package tech.bankapi.entity;
+package tech.bankapi.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;

@@ -1,4 +1,4 @@
-package tech.bankapi.entity;
+package tech.bankapi.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
