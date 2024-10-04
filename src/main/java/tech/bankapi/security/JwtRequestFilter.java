@@ -12,8 +12,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import tech.bankapi.model.User;
+import tech.bankapi.repository.UserRepository;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 @Component
 @RequiredArgsConstructor
@@ -21,6 +24,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
+    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
@@ -39,8 +43,14 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
-            // Validate token and set the authentication if valid
-            if (jwtUtil.validateToken(jwt, userDetails)) {
+            // Retrieve the user entity to get the lastLogoutTime
+            User user = userRepository.findByEmail(username)
+                    .orElseThrow(() -> new IllegalStateException("User not found"));
+
+            LocalDateTime lastLogoutTime = user.getLastLogoutTime();  // Get last logout time
+
+            // Validate token considering the lastLogoutTime
+            if (jwtUtil.validateToken(jwt, userDetails, lastLogoutTime)) {
                 UsernamePasswordAuthenticationToken authenticationToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

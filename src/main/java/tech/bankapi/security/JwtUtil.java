@@ -9,6 +9,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -73,8 +75,20 @@ public class JwtUtil {
     }
 
     // Token Validation
-    public Boolean validateToken(String token, UserDetails userDetails) {
+    public Boolean validateToken(String token, UserDetails userDetails, LocalDateTime lastLogoutTime) {
         final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+
+        // Extracting the issued date from the token
+        Date issuedAt = extractClaim(token, Claims::getIssuedAt);
+
+        // Validating if the token was issued after the user's last logout time
+        boolean isTokenValidAfterLogout = issuedAt.toInstant().isAfter(lastLogoutTime.toInstant(ZoneOffset.UTC));
+
+        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token) && isTokenValidAfterLogout);
+    }
+
+    // Extract UserId from Token
+    public Long extractUserId(String token) {
+        return Long.parseLong(extractClaim(token, Claims::getSubject));
     }
 }
