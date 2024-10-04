@@ -6,8 +6,8 @@ import org.springframework.transaction.annotation.Transactional;
 import tech.bankapi.core.config.ModelMapper.ModelMapperService;
 import tech.bankapi.dto.request.TransactionRequest;
 import tech.bankapi.dto.response.TransactionResponse;
-import tech.bankapi.entity.Account;
-import tech.bankapi.entity.Transaction;
+import tech.bankapi.model.Account;
+import tech.bankapi.model.Transaction;
 import tech.bankapi.exception.GlobalExceptionHandler;
 import tech.bankapi.repository.AccountRepository;
 import tech.bankapi.repository.TransactionRepository;
@@ -23,33 +23,6 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
     private final AccountRepository accountRepository;
     private final ModelMapperService modelMapperService;
-
-    @Override
-    public TransactionResponse createTransaction(TransactionRequest transactionRequest) {
-        if(transactionRepository.findById(modelMapperService.forRequest().map(transactionRequest, Transaction.class).getId()).isEmpty()) {
-            Transaction transaction = modelMapperService.forRequest().map(transactionRequest, Transaction.class);
-            transaction = transactionRepository.save(transaction);
-            return modelMapperService.forResponse().map(transaction, TransactionResponse.class);
-        } else {
-            throw new RuntimeException("Transaction already exists");
-        }
-    }
-
-    @Override
-    public TransactionResponse updateTransaction(TransactionRequest transactionRequest) {
-        Transaction transaction = transactionRepository.findById(modelMapperService.forRequest().map(transactionRequest, Transaction.class).getId())
-                .orElseThrow(() -> new RuntimeException("Transaction not found!"));
-        modelMapperService.forRequest().map(transactionRequest, transaction);
-        transactionRepository.saveAndFlush(transaction);
-        return modelMapperService.forResponse().map(transaction, TransactionResponse.class);
-    }
-
-    @Override
-    public void deleteTransaction(Long id) {
-        Transaction transaction = transactionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Transaction not found with id: " + id));
-        transactionRepository.delete(transaction);
-    }
 
     @Override
     public List<TransactionResponse> getAccountTransactions(Long accountId) {
@@ -68,8 +41,8 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Transactional
     @Override
-    public TransactionResponse transferMoney(TransactionRequest transactionRequest) {
-        Account fromAccount = accountRepository.findById(transactionRequest.getFromAccountId())
+    public TransactionResponse transferMoney(Long id, TransactionRequest transactionRequest) {
+        Account fromAccount = accountRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Sender account not found"));
         Account toAccount = accountRepository.findById(transactionRequest.getToAccountId())
                 .orElseThrow(() -> new RuntimeException("Receiver account not found"));
@@ -86,8 +59,8 @@ public class TransactionServiceImpl implements TransactionService {
         toAccount.setBalance(toAccount.getBalance().add(amount));
 
         // Save updated accounts
-        accountRepository.save(fromAccount);
-        accountRepository.save(toAccount);
+        accountRepository.saveAndFlush(fromAccount);
+        accountRepository.saveAndFlush(toAccount);
 
         // Create transaction log
         Transaction transaction = modelMapperService.forRequest().map(transactionRequest, Transaction.class);
