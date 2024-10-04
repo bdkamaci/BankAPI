@@ -1,8 +1,8 @@
 package tech.bankapi.service;
 
 import tech.bankapi.dto.request.AccountRequest;
-import tech.bankapi.dto.request.TransactionRequest;
 import tech.bankapi.dto.response.AccountResponse;
+import tech.bankapi.dto.response.TransactionResponse;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -15,5 +15,5 @@ public interface AccountService {
     List<AccountResponse> getAllAccounts();
 
     BigDecimal getBalance(Long accountId);
-    AccountResponse transferMoney(TransactionRequest transactionRequest);
+    List<TransactionResponse> getAccountTransactions(Long accountId);
 }
