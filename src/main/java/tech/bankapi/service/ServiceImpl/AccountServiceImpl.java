@@ -2,13 +2,13 @@ package tech.bankapi.service.ServiceImpl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import tech.bankapi.core.config.ModelMapper.ModelMapperService;
 import tech.bankapi.dto.request.AccountRequest;
-import tech.bankapi.dto.request.TransactionRequest;
 import tech.bankapi.dto.response.AccountResponse;
-import tech.bankapi.entity.Account;
-import tech.bankapi.entity.Transaction;
+import tech.bankapi.dto.response.TransactionResponse;
+import tech.bankapi.model.Account;
+import tech.bankapi.model.Transaction;
+import tech.bankapi.exception.GlobalExceptionHandler;
 import tech.bankapi.repository.AccountRepository;
 import tech.bankapi.repository.TransactionRepository;
 import tech.bankapi.service.AccountService;
@@ -74,33 +74,27 @@ public class AccountServiceImpl implements AccountService {
         return account.getBalance();
     }
 
-    @Transactional
     @Override
-    public AccountResponse transferMoney(TransactionRequest transactionRequest) {
-        Account fromAccount = accountRepository.findById(transactionRequest.getFromAccountId())
-                .orElseThrow(() -> new RuntimeException("Source account not found"));
-        Account toAccount = accountRepository.findById(transactionRequest.getToAccountId())
-                .orElseThrow(() -> new RuntimeException("Destination account not found"));
+    public List<TransactionResponse> getAccountTransactions(Long accountId) {
+        // Fetch the account by ID to check if it exists
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new GlobalExceptionHandler.ResourceNotFoundException("Account not found with id: " + accountId));
 
-        // Money Transfer Logic
-        if (fromAccount.getBalance().compareTo(transactionRequest.getAmount()) < 0) {
-            throw new RuntimeException("Insufficient balance");
-        }
+        // Fetch the transactions where the account is either the fromAccount or toAccount
+        List<Transaction> transactions = transactionRepository.findByFromAccountIdOrToAccountId(accountId, accountId);
 
-        fromAccount.setBalance(fromAccount.getBalance().subtract(transactionRequest.getAmount()));
-        toAccount.setBalance(toAccount.getBalance().add(transactionRequest.getAmount()));
-
-        // Saving Updated Accounts
-        accountRepository.save(fromAccount);
-        accountRepository.save(toAccount);
-
-        // Creating a Transaction Record
-        Transaction transaction = new Transaction();
-        transaction.setAmount(transactionRequest.getAmount());
-        transaction.setFromAccount(fromAccount);
-        transaction.setToAccount(toAccount);
-        transactionRepository.save(transaction);
-
-        return modelMapperService.forResponse().map(fromAccount, AccountResponse.class);
+        // Map each transaction to a TransactionResponse
+        return transactions.stream()
+                .map(transaction -> {
+                    TransactionResponse response = new TransactionResponse();
+                    response.setId(transaction.getId());
+                    response.setAmount(transaction.getAmount());
+                    response.setDate(transaction.getDate());
+                    response.setDescription(transaction.getDescription());
+                    response.setFromAccountId(transaction.getFromAccount().getId());
+                    response.setToAccountId(transaction.getToAccount().getId());
+                    return response;
+                })
+                .collect(Collectors.toList());
     }
 }
