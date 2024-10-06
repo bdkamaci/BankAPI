@@ -18,8 +18,5 @@ public class TransactionRequest {
     private String description;
 
     @NonNull
-    private Long fromAccountId;
-
-    @NonNull
     private Long toAccountId;
 }
