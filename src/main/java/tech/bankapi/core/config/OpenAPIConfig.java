@@ -22,9 +22,9 @@ public class OpenAPIConfig {
         myContact.setEmail("burcudogakamaci@gmail.com");
 
         Info information = new Info()
-                .title("Student Information System API")
+                .title("Banking API")
                 .version("1.0")
-                .description("This API exposes endpoints to manage students.")
+                .description("This API exposes endpoints to manage banking operations.")
                 .contact(myContact);
         return new OpenAPI().info(information).servers(List.of(server));
     }
