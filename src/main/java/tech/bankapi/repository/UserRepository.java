@@ -1,7 +1,7 @@
 package tech.bankapi.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import tech.bankapi.entity.User;
+import tech.bankapi.model.User;
 
 import java.util.Optional;
 

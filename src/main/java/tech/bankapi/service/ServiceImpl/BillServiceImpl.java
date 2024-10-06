@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import tech.bankapi.core.config.ModelMapper.ModelMapperService;
 import tech.bankapi.dto.request.BillRequest;
 import tech.bankapi.dto.response.BillResponse;
-import tech.bankapi.entity.Bill;
+import tech.bankapi.model.Bill;
 import tech.bankapi.repository.AccountRepository;
 import tech.bankapi.repository.BillRepository;
 import tech.bankapi.service.BillService;
