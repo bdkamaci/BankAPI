@@ -1,12 +1,7 @@
 spring.application.name=bankAPI
 
-server.tomcat.accesslog.enabled=true
-
-spring.datasource.url=jdbc:postgresql://dpg-csjk01hu0jms73b2j52g-a.frankfurt-postgres.render.com/product_2i77
-spring.datasource.username=product_2i77_user
-spring.datasource.password=gTSJLde0XUq0opn7c7DtZWBx4PijD8S9
+spring.datasource.url=jdbc:postgresql://localhost:5432/bank
 spring.datasource.driver-class-name=org.postgresql.Driver
-
 spring.jpa.show-sql=true
 spring.jpa.hibernate.ddl-auto=create-drop
 
