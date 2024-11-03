@@ -1,17 +1,16 @@
-FROM maven:3.9.9-eclipse-temurin-17 AS build
+FROM maven:3.9.8-eclipse-temurin-21 AS build
+
+COPY src /app/src
+
+COPY pom.xml /app
 
 WORKDIR /app
+RUN mvn clean install -U
 
-COPY ./pom.xml /app
-COPY ./src /app/src
-
-RUN mvn clean package -D maven.test.skip=true
-
-FROM eclipse-temurin:11-jdk
+FROM openjdk:21
+COPY --from=build /app/target/bankAPI-0.0.1-SNAPSHOT.jar /app/app.jar
 
 WORKDIR /app
-
-COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8080
 
