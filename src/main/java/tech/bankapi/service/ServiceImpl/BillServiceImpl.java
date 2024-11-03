@@ -6,7 +6,6 @@ import tech.bankapi.core.config.ModelMapper.ModelMapperService;
 import tech.bankapi.dto.request.BillRequest;
 import tech.bankapi.dto.response.BillResponse;
 import tech.bankapi.model.Bill;
-import tech.bankapi.repository.AccountRepository;
 import tech.bankapi.repository.BillRepository;
 import tech.bankapi.service.BillService;
 
@@ -17,7 +16,6 @@ import java.util.stream.Collectors;
 @Service
 public class BillServiceImpl implements BillService {
     private final BillRepository billRepository;
-    private final AccountRepository accountRepository;
     private final ModelMapperService modelMapperService;
 
     @Override
