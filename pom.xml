@@ -126,7 +126,7 @@
                 </configuration>
             </plugin>
         </plugins>
-        <defaultGoal>compile</defaultGoal>
+        <defaultGoal>install</defaultGoal>
     </build>
 
 </project>
