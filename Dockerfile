@@ -5,7 +5,7 @@ WORKDIR /app
 COPY ./pom.xml /app
 COPY ./src /app/src
 
-RUN mvn clean package -Dmaven.test.skip=true
+RUN mvn clean package -D maven.test.skip=true
 
 FROM eclipse-temurin:11-jdk
 
