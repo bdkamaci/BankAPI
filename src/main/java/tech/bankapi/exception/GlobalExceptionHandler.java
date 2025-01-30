@@ -2,9 +2,10 @@ package tech.bankapi.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import tech.bankapi.exception.custom.*;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,74 +13,8 @@ import java.util.Map;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Custom Exceptions
-    public static class UsernameNotFoundException extends RuntimeException {
-        public UsernameNotFoundException(String message) {
-            super(message);
-        }
-    }
-
-    public static class BadCredentialsException extends RuntimeException {
-        public BadCredentialsException(String message) {
-            super(message);
-        }
-    }
-
-    public static class AccessDeniedException extends RuntimeException {
-        public AccessDeniedException(String message) {
-            super(message);
-        }
-    }
-
-    public static class MethodArgumentNotValidException extends RuntimeException {
-        public MethodArgumentNotValidException(String message) {
-            super(message);
-        }
-    }
-
-    public static class InsufficientFundsException extends RuntimeException {
-        public InsufficientFundsException(String message) {
-            super(message);
-        }
-    }
-
-    public static class AccountNotFoundException extends RuntimeException {
-        public AccountNotFoundException(String message) {
-            super(message);
-        }
-    }
-
-    public static class BillAlreadyPaidException extends RuntimeException {
-        public BillAlreadyPaidException(String message) {
-            super(message);
-        }
-    }
-
-    public static class EntityNotFoundException extends RuntimeException {
-        public EntityNotFoundException(String message) {
-            super(message);
-        }
-    }
-
-    public static class CustomException extends RuntimeException {
-        public CustomException(String message) {
-            super(message);
-        }
-    }
-
-    public static class InvalidCredentialsException extends RuntimeException {
-        public InvalidCredentialsException(String message) {
-            super(message);
-        }
-    }
-
-    public static class ResourceNotFoundException extends RuntimeException {
-        public ResourceNotFoundException(String message) {
-            super(message);
-        }
-    }
-
     // Exception Handlers
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGeneralException(Exception ex) {
         return buildResponseEntity(ex, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -101,8 +36,12 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Object> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
-        return buildResponseEntity(ex, HttpStatus.BAD_REQUEST);
+    public ResponseEntity<Object> handleValidationException(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error ->
+                errors.put(error.getField(), error.getDefaultMessage())
+        );
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(InsufficientFundsException.class)
@@ -139,8 +78,10 @@ public class GlobalExceptionHandler {
     private ResponseEntity<Object> buildResponseEntity(Exception ex, HttpStatus status) {
         Map<String, Object> response = new HashMap<>();
         response.put("timestamp", LocalDateTime.now());
-        response.put("message", ex.getMessage());
         response.put("status", status.value());
+        response.put("error", status.getReasonPhrase());
+        response.put("message", ex.getMessage());
+        response.put("errorCode", ex.getClass().getSimpleName()); // Adds exception name as error code
         return new ResponseEntity<>(response, status);
     }
 }
