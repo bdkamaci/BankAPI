@@ -27,19 +27,18 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logoutUser(HttpServletRequest request) {
-        // Extract the token from the Authorization header
         String token = extractTokenFromRequest(request);
-
         if (token == null) {
             return ResponseEntity.badRequest().build();
         }
 
-        // Extract the userId from the token
+        // Extract userId from JWT
         Long userId = jwtUtil.extractUserId(token);
+        if (userId == null) {
+            return ResponseEntity.badRequest().build();
+        }
 
-        // Call the logout method with userId
         authService.logoutUser(userId);
-
         return ResponseEntity.ok().build();
     }
 
