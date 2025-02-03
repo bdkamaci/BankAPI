@@ -1,5 +1,6 @@
 package tech.bankapi.security;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,30 +32,35 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String authorizationHeader = request.getHeader("Authorization");
-
         String username = null;
         String jwt = null;
 
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             jwt = authorizationHeader.substring(7);
-            username = jwtUtil.extractUsername(jwt);
+            try {
+                username = jwtUtil.extractUsername(jwt);
+            } catch (JwtException e) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid Token");
+                return;
+            }
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
-            // Retrieve the user entity to get the lastLogoutTime
             User user = userRepository.findByEmail(username)
                     .orElseThrow(() -> new IllegalStateException("User not found"));
 
-            LocalDateTime lastLogoutTime = user.getLastLogoutTime();  // Get last logout time
+            LocalDateTime lastLogoutTime = user.getLastLogoutTime();
 
-            // Validate token considering the lastLogoutTime
-            if (jwtUtil.validateToken(jwt, userDetails, lastLogoutTime)) {
+            if (Boolean.TRUE.equals(jwtUtil.validateToken(jwt, userDetails, lastLogoutTime))) {
                 UsernamePasswordAuthenticationToken authenticationToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            } else {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token expired or revoked");
+                return;
             }
         }
 
